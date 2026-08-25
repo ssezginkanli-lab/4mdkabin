@@ -8,6 +8,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK (Compat Modu) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
@@ -67,7 +72,7 @@
                 
                 <form id="dispatchForm" onsubmit="saveDispatch(event)" class="space-y-3.5">
 
-                    <!-- 0. OTOMATİK TARİH (Sadece Okunabilir) -->
+                    <!-- 0. OTOMATİK TARİH -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
                             <i class="fa-regular fa-calendar-days text-blue-600 mr-1"></i> Talep Tarihi
@@ -147,7 +152,7 @@
                         </div>
                     </div>
 
-                    <!-- 4. MÜŞTERİ ÜNVANI - TABELA ADI -->
+                    <!-- 4. MÜŞTERİ ÜNVANI -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
                             Müşteri Ünvanı / Tabela Adı <span class="text-red-500">*</span>
@@ -155,7 +160,7 @@
                         <input type="text" id="custName" required placeholder="Örn: TEZCAN - PİLİÇ DONDURMA" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs uppercase font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
                     </div>
 
-                    <!-- 5. DOLAP DIŞ GÖRÜNTÜSÜ (STİCKER) -->
+                    <!-- 5. STİCKER -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Dolap Dış Görüntüsü (Sticker)</label>
                         <select id="sticker" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
@@ -235,7 +240,7 @@
                         <input type="text" id="outgoingMaterial" placeholder="Örn: Şemsiye, Banner, 2 adet sepet vb..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
                     </div>
 
-                    <!-- 8. AÇIKLAMA ALANI -->
+                    <!-- 8. AÇIKLAMA -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Bilgi, Açıklama, Not</label>
                         <textarea id="notes" rows="2" placeholder="Özel adres tarifi, kat bilgisi vb..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none"></textarea>
@@ -301,13 +306,13 @@
             <!-- Şifre Alanı -->
             <div id="adminLoginArea" class="space-y-3">
                 <p class="text-xs text-slate-500">Excel raporu indirmek ve yönetici işlemlerine erişmek için şifre giriniz.</p>
-                <input type="password" id="adminPass" placeholder="Yönetici Şifresi (Örn: 1234)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none">
+                <input type="password" id="adminPass" placeholder="Yönetici Şifresi (Örn: 1923)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none">
                 <button onclick="checkAdminLogin()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition">
                     Giriş Yap
                 </button>
             </div>
 
-            <!-- Yönetim İşlemleri (Giriş Başarılıysa Görünür) -->
+            <!-- Yönetim İşlemleri -->
             <div id="adminPanelActions" class="hidden space-y-3">
                 <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 flex items-center justify-between">
                     <span>Yetkilendirme Başarılı</span>
@@ -325,13 +330,31 @@
         </div>
     </div>
 
-    <!-- Alt Navigasyon / Bilgi Çubuğu -->
+    <!-- Alt Navigasyon -->
     <footer class="bg-white border-t border-slate-200 py-3 text-center text-[10px] text-slate-500 fixed bottom-0 left-0 right-0 z-40 shadow-inner">
         <p>4 Bölgeli Dondurma Operasyon Sistemi &bull; <span id="activeDispatcherFooter" class="font-semibold text-blue-600">Sevkiyat Ekibi Aktif</span></p>
     </footer>
 
-    <!-- JavaScript Uygulama Mantığı -->
+    <!-- JavaScript & Firebase Mantığı -->
     <script>
+        // --- 1. BURAYA KENDİ FIREBASE BİLGİLERİNİZİ YAPIŞTIRIN ---
+        const firebaseConfig = {
+	apiKey: "AIzaSyAitBeKLzNj7KkmiWkONn1WprCiQnHhit8",
+  authDomain: "kabin-a3229.firebaseapp.com",
+  projectId: "kabin-a3229",
+  storageBucket: "kabin-a3229.firebasestorage.app",
+  messagingSenderId: "385079167799",
+  appId: "1:385079167799:web:9044ecd827a4529a28a8b2",
+  measurementId: "G-16FLE4NW7K"
+
+
+
+        };
+
+        // Firebase başlatma
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         const dispatchers = {
             "BÖLGE 1: SELİM ARSLAN": "Selim Arslan (Sevkiyat Sorumlusu)",
             "BÖLGE 2: SERKAN PEHLİVAN ": "Serkan Pehlivan (Sevkiyat Sorumlusu)",
@@ -339,14 +362,28 @@
             "BÖLGE 4: ÖZGÜR&İSMAİL": "Özgür & İsmail (Sevkiyat Sorumlusu)"
         };
 
-        let records = JSON.parse(localStorage.getItem('dispatchRecordsV4')) || [];
+        let records = [];
         let currentFilter = 'ALL';
 
         function initApp() {
             const today = new Date().toLocaleDateString('tr-TR');
             document.getElementById('reqDate').value = today;
-            updateBadge();
-            renderCards();
+
+            // Sayfa açıldığında verileri canlı dinleme (on value)
+            db.ref('dispatchRecords').on('value', (snapshot) => {
+                const data = snapshot.val();
+                records = [];
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        records.push({
+                            firebaseKey: key, // Firebase silme/güncelleme için benzersiz ID
+                            ...data[key]
+                        });
+                    });
+                }
+                updateBadge();
+                renderCards();
+            });
         }
 
         function switchView(view) {
@@ -385,6 +422,7 @@
             }
         }
 
+        // Kaydet tuşuna basıldığında Firebase veritabanına push etme
         function saveDispatch(e) {
             e.preventDefault();
 
@@ -406,24 +444,29 @@
                 date: document.getElementById('reqDate').value
             };
 
-            records.push(newRecord);
-            localStorage.setItem('dispatchRecordsV4', JSON.stringify(records));
-
-            alert('Sevkiyat talebi ilgili bölge sevkiyatçısına başarıyla iletildi!');
-            document.getElementById('dispatchForm').reset();
-            document.getElementById('dispatcherBox').classList.add('hidden');
-            document.getElementById('reqDate').value = new Date().toLocaleDateString('tr-TR');
-            
-            updateBadge();
-            switchView('list');
+            // Firebase'e veri gönderme
+            db.ref('dispatchRecords').push(newRecord)
+                .then(() => {
+                    alert('Sevkiyat talebi tüm cihazlara ve ilgili bölgeye başarıyla iletildi!');
+                    document.getElementById('dispatchForm').reset();
+                    document.getElementById('dispatcherBox').classList.add('hidden');
+                    document.getElementById('reqDate').value = new Date().toLocaleDateString('tr-TR');
+                    switchView('list');
+                })
+                .catch((error) => {
+                    alert('Kayıt sırasında hata oluştu: ' + error.message);
+                });
         }
 
-        function deleteRecord(id) {
-            if (confirm('Bu sevkiyat talebini silmek istediğinize emin misiniz?')) {
-                records = records.filter(r => r.id !== id);
-                localStorage.setItem('dispatchRecordsV4', JSON.stringify(records));
-                updateBadge();
-                renderCards();
+        function deleteRecord(firebaseKey) {
+            if (confirm('Bu sevkiyat talebini tüm sistemden silmek istediğinize emin misiniz?')) {
+                db.ref('dispatchRecords/' + firebaseKey).remove()
+                    .then(() => {
+                        // Dinleyici (on value) otomatik güncelleyeceği için ek kod gerekmez
+                    })
+                    .catch((error) => {
+                        alert('Silme hatası: ' + error.message);
+                    });
             }
         }
 
@@ -462,7 +505,8 @@
                 emptyState.classList.add('hidden');
             }
 
-            filtered.reverse().forEach((rec) => {
+            // En son eklenen en üstte gözüksün diye ters çeviriyoruz
+            [...filtered].reverse().forEach((rec) => {
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-2xl p-4 shadow-sm border border-slate-200/90 space-y-2.5 relative";
                 
@@ -478,7 +522,7 @@
                         </div>
                         <div class="flex flex-col items-end space-y-1">
                             <span class="text-[10px] text-slate-400 font-mono">#${rec.custNo}</span>
-                            <button onclick="deleteRecord(${rec.id})" class="text-slate-400 hover:text-red-600 transition p-1 bg-slate-50 hover:bg-red-50 rounded" title="Kaydı Sil">
+                            <button onclick="deleteRecord('${rec.firebaseKey}')" class="text-slate-400 hover:text-red-600 transition p-1 bg-slate-50 hover:bg-red-50 rounded" title="Kaydı Sil">
                                 <i class="fa-solid fa-trash text-xs"></i>
                             </button>
                         </div>
@@ -542,12 +586,15 @@
         }
 
         function clearAll() {
-            if (confirm('Tüm kayıtlar kalıcı olarak silinecek. Emin misiniz?')) {
-                records = [];
-                localStorage.removeItem('dispatchRecordsV4');
-                updateBadge();
-                renderCards();
-                closeAdminModal();
+            if (confirm('Bulut veritabanındaki TÜM kayıtlar kalıcı olarak silinecek. Emin misiniz?')) {
+                db.ref('dispatchRecords').remove()
+                    .then(() => {
+                        alert('Veritabanı başarıyla sıfırlandı.');
+                        closeAdminModal();
+                    })
+                    .catch((error) => {
+                        alert('Hata: ' + error.message);
+                    });
             }
         }
 
