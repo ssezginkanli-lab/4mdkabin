@@ -325,7 +325,6 @@
             appId: "1:385079167799:web:9044ecd827a4529a28a8b2"
         };
 
-        // Firebase başlatma kontrolü
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -362,6 +361,7 @@
                 renderCards();
             });
         }
+        window.initApp = initApp;
 
         function switchView(view) {
             const formSec = document.getElementById('formSection');
@@ -382,6 +382,7 @@
                 renderCards();
             }
         }
+        window.switchView = switchView;
 
         function updateDispatcherInfo() {
             const region = document.getElementById('regionSelect').value;
@@ -398,6 +399,7 @@
                 footerEl.innerText = 'Sevkiyat Ekibi Aktif';
             }
         }
+        window.updateDispatcherInfo = updateDispatcherInfo;
 
         function saveDispatch(e) {
             e.preventDefault();
@@ -432,6 +434,7 @@
                     alert('Kayıt sırasında hata oluştu: ' + error.message);
                 });
         }
+        window.saveDispatch = saveDispatch;
 
         function deleteRecord(firebaseKey) {
             if (confirm('Bu sevkiyat talebini tüm sistemden silmek istediğinize emin misiniz?')) {
@@ -441,6 +444,7 @@
                     });
             }
         }
+        window.deleteRecord = deleteRecord;
 
         function updateBadge() {
             const badge = document.getElementById('badgeCount');
@@ -463,6 +467,7 @@
             });
             renderCards();
         }
+        window.filterRegion = filterRegion;
 
         function renderCards() {
             const container = document.getElementById('cardsContainer');
@@ -539,6 +544,7 @@
                 container.appendChild(card);
             });
         }
+        window.renderCards = renderCards;
 
         function openAdminModal() {
             document.getElementById('adminModal').classList.remove('hidden');
@@ -546,10 +552,12 @@
             document.getElementById('adminLoginArea').classList.remove('hidden');
             document.getElementById('adminPanelActions').classList.add('hidden');
         }
+        window.openAdminModal = openAdminModal;
 
         function closeAdminModal() {
             document.getElementById('adminModal').classList.add('hidden');
         }
+        window.closeAdminModal = closeAdminModal;
 
         function checkAdminLogin() {
             const pass = document.getElementById('adminPass').value;
@@ -560,6 +568,7 @@
                 alert('Hatalı yönetici şifresi!');
             }
         }
+        window.checkAdminLogin = checkAdminLogin;
 
         function clearAll() {
             if (confirm('Bulut veritabanındaki TÜM kayıtlar kalıcı olarak silinecek. Emin misiniz?')) {
@@ -573,6 +582,7 @@
                     });
             }
         }
+        window.clearAll = clearAll;
 
         function exportExcel() {
             if (records.length === 0) {
@@ -646,6 +656,7 @@
             link.click();
             closeAdminModal();
         }
+        window.exportExcel = exportExcel;
     </script>
 </body>
 </html>
