@@ -49,13 +49,12 @@
         </div>
     </header>
 
-    <!-- Main Content Container (Mobile First max-w-md) -->
+    <!-- Main Content Container -->
     <main class="max-w-md w-full mx-auto p-4 flex-grow mb-16">
         
         <!-- FORM VIEW -->
         <div id="formSection" class="space-y-4">
             
-            <!-- Welcome / Status Card -->
             <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-4 text-white shadow-md">
                 <div class="flex justify-between items-start">
                     <div>
@@ -67,12 +66,9 @@
                 <p class="text-xs text-blue-100 mt-2">Bölge seçtiğinizde ilgili bölge sevkiyatçısı otomatik olarak atanacaktır.</p>
             </div>
 
-            <!-- Main Input Form Card -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 space-y-4">
-                
                 <form id="dispatchForm" onsubmit="saveDispatch(event)" class="space-y-3.5">
 
-                    <!-- 0. OTOMATİK TARİH -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
                             <i class="fa-regular fa-calendar-days text-blue-600 mr-1"></i> Talep Tarihi
@@ -80,7 +76,6 @@
                         <input type="text" id="reqDate" readonly class="w-full bg-slate-200/70 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-600 outline-none cursor-not-allowed">
                     </div>
                     
-                    <!-- 1. BÖLGE SEÇİMİ -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
                             <i class="fa-solid fa-map-location-dot text-blue-600 mr-1"></i> ASU-RUT Bölgesi <span class="text-red-500">*</span>
@@ -94,7 +89,6 @@
                         </select>
                     </div>
 
-                    <!-- Otomatik Atanan Sevkiyatçı Bilgi Kutusu -->
                     <div id="dispatcherBox" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center justify-between">
                         <div class="flex items-center space-x-2.5">
                             <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
@@ -108,7 +102,6 @@
                         <span class="text-[10px] bg-blue-200 text-blue-800 font-semibold px-2 py-0.5 rounded">Otomatik Atandı</span>
                     </div>
 
-                    <!-- 2. SATIŞ ELEMANI SEÇİMİ -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
                             <i class="fa-solid fa-user-tie text-blue-600 mr-1"></i> Satış Elemanı <span class="text-red-500">*</span>
@@ -140,7 +133,6 @@
                         </select>
                     </div>
 
-                    <!-- 3. TALEP NO & MÜŞTERİ NO -->
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Talep No</label>
@@ -152,7 +144,6 @@
                         </div>
                     </div>
 
-                    <!-- 4. MÜŞTERİ ÜNVANI -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
                             Müşteri Ünvanı / Tabela Adı <span class="text-red-500">*</span>
@@ -160,7 +151,6 @@
                         <input type="text" id="custName" required placeholder="Örn: TEZCAN - PİLİÇ DONDURMA" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs uppercase font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
                     </div>
 
-                    <!-- 5. STİCKER -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Dolap Dış Görüntüsü (Sticker)</label>
                         <select id="sticker" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
@@ -170,7 +160,6 @@
                         </select>
                     </div>
 
-                    <!-- 6. GİDECEK KABİN & DURUM -->
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Gidecek Kabin</label>
@@ -204,7 +193,6 @@
                         </div>
                     </div>
 
-                    <!-- 7. ALINACAK KABİN -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
                             <i class="fa-solid fa-rotate-left text-blue-600 mr-1"></i> Alınacak Kabin (Geri Alınacak)
@@ -232,7 +220,6 @@
                         </select>
                     </div>
 
-                    <!-- GİDECEK MALZEME -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
                             <i class="fa-solid fa-box-open text-blue-600 mr-1"></i> Gidecek Malzeme (Açıklama)
@@ -240,13 +227,11 @@
                         <input type="text" id="outgoingMaterial" placeholder="Örn: Şemsiye, Banner, 2 adet sepet vb..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
                     </div>
 
-                    <!-- 8. AÇIKLAMA -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Bilgi, Açıklama, Not</label>
                         <textarea id="notes" rows="2" placeholder="Özel adres tarifi, kat bilgisi vb..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none"></textarea>
                     </div>
 
-                    <!-- KAYDET BUTONU -->
                     <div class="pt-2">
                         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-bold py-3 px-4 rounded-xl shadow-md transition duration-150 flex items-center justify-center space-x-2 text-xs uppercase tracking-wider">
                             <i class="fa-solid fa-floppy-disk"></i>
@@ -261,7 +246,6 @@
         <!-- LIST / DASHBOARD VIEW -->
         <div id="listSection" class="hidden space-y-4">
             
-            <!-- Bölge Filtreleme Butonları -->
             <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
                 <p class="text-[11px] font-bold text-slate-500 uppercase mb-2">Bölgeye Göre Filtrele:</p>
                 <div class="grid grid-cols-2 gap-2 text-xs">
@@ -273,12 +257,8 @@
                 </div>
             </div>
 
-            <!-- Kayıt Kartları Listesi -->
-            <div id="cardsContainer" class="space-y-3">
-                <!-- Dinamik Kartlar Buraya Gelecek -->
-            </div>
+            <div id="cardsContainer" class="space-y-3"></div>
 
-            <!-- Boş Durum -->
             <div id="emptyListState" class="hidden text-center py-12 text-slate-400">
                 <i class="fa-solid fa-clipboard-list text-3xl mb-2"></i>
                 <p class="text-xs">Bu kriterde kayıt bulunmuyor.</p>
@@ -303,7 +283,6 @@
                 </button>
             </div>
 
-            <!-- Şifre Alanı -->
             <div id="adminLoginArea" class="space-y-3">
                 <p class="text-xs text-slate-500">Excel raporu indirmek ve yönetici işlemlerine erişmek için şifre giriniz.</p>
                 <input type="password" id="adminPass" placeholder="Yönetici Şifresi (Örn: 1923)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none">
@@ -312,7 +291,6 @@
                 </button>
             </div>
 
-            <!-- Yönetim İşlemleri -->
             <div id="adminPanelActions" class="hidden space-y-3">
                 <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 flex items-center justify-between">
                     <span>Yetkilendirme Başarılı</span>
@@ -337,24 +315,18 @@
 
     <!-- JavaScript & Firebase Mantığı -->
     <script>
-        // --- 1. BURAYA KENDİ FIREBASE BİLGİLERİNİZİ YAPIŞTIRIN ---
-  
-const firebaseConfig = {
-    apiKey: "AIzaSyAitBeKLzNj7KkmiWkONn1WprCiQnHhit8",
-    authDomain: "kabin-a3229.firebaseapp.com",
-    databaseURL: "https://kabin-a3229-default-rtdb.firebaseio.com", 
-    projectId: "kabin-a3229",
-    storageBucket: "kabin-a3229.appspot.com",
-    messagingSenderId: "385079167799",
-    appId: "1:385079167799:web:9044ecd827a4529a28a8b2"
-};
-
-
-
-
+        // Firebase Yapılandırma Bilgileri
+        const firebaseConfig = {
+            apiKey: "AIzaSyAitBeKLzNj7KkmiWkONn1WprCiQnHhit8",
+            authDomain: "kabin-a3229.firebaseapp.com",
+            databaseURL: "https://kabin-a3229-default-rtdb.firebaseio.com", 
+            projectId: "kabin-a3229",
+            storageBucket: "kabin-a3229.appspot.com",
+            messagingSenderId: "385079167799",
+            appId: "1:385079167799:web:9044ecd827a4529a28a8b2"
         };
 
-        // Firebase başlatma
+        // Firebase başlatma (Hatalı fazladan parantez kaldırıldı)
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -372,14 +344,13 @@ const firebaseConfig = {
             const today = new Date().toLocaleDateString('tr-TR');
             document.getElementById('reqDate').value = today;
 
-            // Sayfa açıldığında verileri canlı dinleme (on value)
             db.ref('dispatchRecords').on('value', (snapshot) => {
                 const data = snapshot.val();
                 records = [];
                 if (data) {
                     Object.keys(data).forEach(key => {
                         records.push({
-                            firebaseKey: key, // Firebase silme/güncelleme için benzersiz ID
+                            firebaseKey: key,
                             ...data[key]
                         });
                     });
@@ -425,7 +396,6 @@ const firebaseConfig = {
             }
         }
 
-        // Kaydet tuşuna basıldığında Firebase veritabanına push etme
         function saveDispatch(e) {
             e.preventDefault();
 
@@ -447,7 +417,6 @@ const firebaseConfig = {
                 date: document.getElementById('reqDate').value
             };
 
-            // Firebase'e veri gönderme
             db.ref('dispatchRecords').push(newRecord)
                 .then(() => {
                     alert('Sevkiyat talebi tüm cihazlara ve ilgili bölgeye başarıyla iletildi!');
@@ -464,9 +433,6 @@ const firebaseConfig = {
         function deleteRecord(firebaseKey) {
             if (confirm('Bu sevkiyat talebini tüm sistemden silmek istediğinize emin misiniz?')) {
                 db.ref('dispatchRecords/' + firebaseKey).remove()
-                    .then(() => {
-                        // Dinleyici (on value) otomatik güncelleyeceği için ek kod gerekmez
-                    })
                     .catch((error) => {
                         alert('Silme hatası: ' + error.message);
                     });
@@ -508,7 +474,6 @@ const firebaseConfig = {
                 emptyState.classList.add('hidden');
             }
 
-            // En son eklenen en üstte gözüksün diye ters çeviriyoruz
             [...filtered].reverse().forEach((rec) => {
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-2xl p-4 shadow-sm border border-slate-200/90 space-y-2.5 relative";
@@ -601,7 +566,6 @@ const firebaseConfig = {
             }
         }
 
-        // HÜCRE KENARLIKLI VE KALIN BAŞLIKLI EXCEL DIŞA AKTARIM FONKSİYONU
         function exportExcel() {
             if (records.length === 0) {
                 alert('Dışa aktarılacak kayıt bulunmuyor.');
