@@ -19,7 +19,7 @@
         .tap-highlight { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
-<body class="text-slate-800 min-h-screen flex flex-col justify-between tap-highlight">
+<body class="text-slate-800 min-h-screen flex flex-col justify-between tap-highlight" onload="initApp()">
 
     <!-- Top Mobile Header -->
     <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-lg sticky top-0 z-50">
@@ -315,7 +315,6 @@
 
     <!-- JavaScript & Firebase Mantığı -->
     <script>
-        // Firebase Yapılandırma Bilgileri
         const firebaseConfig = {
             apiKey: "AIzaSyAitBeKLzNj7KkmiWkONn1WprCiQnHhit8",
             authDomain: "kabin-a3229.firebaseapp.com",
@@ -326,8 +325,10 @@
             appId: "1:385079167799:web:9044ecd827a4529a28a8b2"
         };
 
-        // Firebase başlatma (Hatalı fazladan parantez kaldırıldı)
-        firebase.initializeApp(firebaseConfig);
+        // Firebase başlatma kontrolü
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.database();
 
         const dispatchers = {
@@ -341,8 +342,10 @@
         let currentFilter = 'ALL';
 
         function initApp() {
-            const today = new Date().toLocaleDateString('tr-TR');
-            document.getElementById('reqDate').value = today;
+            const dateEl = document.getElementById('reqDate');
+            if(dateEl) {
+                dateEl.value = new Date().toLocaleDateString('tr-TR');
+            }
 
             db.ref('dispatchRecords').on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -440,18 +443,22 @@
         }
 
         function updateBadge() {
-            document.getElementById('badgeCount').innerText = records.length;
-            document.getElementById('countAll').innerText = records.length;
+            const badge = document.getElementById('badgeCount');
+            const countAll = document.getElementById('countAll');
+            if(badge) badge.innerText = records.length;
+            if(countAll) countAll.innerText = records.length;
         }
 
         function filterRegion(regCode) {
             currentFilter = regCode;
             ['ALL', '1', '2', '3', '4'].forEach(code => {
                 const btn = document.getElementById(`filter-${code}`);
-                if (code === regCode) {
-                    btn.className = "bg-blue-600 text-white font-semibold py-2 px-2.5 rounded-xl transition text-center shadow-xs " + (code==='4'?'col-span-2':'');
-                } else {
-                    btn.className = "bg-slate-100 text-slate-700 font-medium py-2 px-2.5 rounded-xl transition text-center " + (code==='4'?'col-span-2':'');
+                if(btn) {
+                    if (code === regCode) {
+                        btn.className = "bg-blue-600 text-white font-semibold py-2 px-2.5 rounded-xl transition text-center shadow-xs " + (code==='4'?'col-span-2':'');
+                    } else {
+                        btn.className = "bg-slate-100 text-slate-700 font-medium py-2 px-2.5 rounded-xl transition text-center " + (code==='4'?'col-span-2':'');
+                    }
                 }
             });
             renderCards();
@@ -460,18 +467,19 @@
         function renderCards() {
             const container = document.getElementById('cardsContainer');
             const emptyState = document.getElementById('emptyListState');
+            if(!container) return;
             container.innerHTML = '';
 
             let filtered = records;
             if (currentFilter !== 'ALL') {
-                filtered = records.filter(r => r.region.startsWith(`BÖLGE ${currentFilter}:`));
+                filtered = records.filter(r => r.region && r.region.startsWith(`BÖLGE ${currentFilter}:`));
             }
 
             if (filtered.length === 0) {
-                emptyState.classList.remove('hidden');
+                if(emptyState) emptyState.classList.remove('hidden');
                 return;
             } else {
-                emptyState.classList.add('hidden');
+                if(emptyState) emptyState.classList.add('hidden');
             }
 
             [...filtered].reverse().forEach((rec) => {
@@ -485,7 +493,7 @@
                 card.innerHTML = `
                     <div class="flex justify-between items-start border-b border-slate-100 pb-2">
                         <div>
-                            <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wide bg-blue-50 px-2 py-0.5 rounded-md">${rec.region.split(':')[0]}</span>
+                            <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wide bg-blue-50 px-2 py-0.5 rounded-md">${rec.region ? rec.region.split(':')[0] : ''}</span>
                             <h3 class="font-bold text-xs text-slate-900 mt-1 uppercase">${rec.custName}</h3>
                         </div>
                         <div class="flex flex-col items-end space-y-1">
@@ -638,8 +646,6 @@
             link.click();
             closeAdminModal();
         }
-
-        window.onload = initApp;
     </script>
 </body>
 </html>
