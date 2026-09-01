@@ -8,18 +8,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Firebase SDK (Compat Modu) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
+    <!-- SheetJS (xlsx) with Cell Styles support / standard sheetjs -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- jsPDF for Region PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
         .tap-highlight { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
-<body class="text-slate-800 min-h-screen flex flex-col justify-between tap-highlight" onload="initApp()">
+<body class="text-slate-800 min-h-screen flex flex-col justify-between tap-highlight">
 
     <!-- Top Mobile Header -->
     <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-lg sticky top-0 z-50">
@@ -49,26 +49,34 @@
         </div>
     </header>
 
-    <!-- Main Content Container -->
+    <!-- Main Content Container (Mobile First max-w-md) -->
     <main class="max-w-md w-full mx-auto p-4 flex-grow mb-16">
         
         <!-- FORM VIEW -->
         <div id="formSection" class="space-y-4">
             
+            <!-- Welcome / Status Card -->
             <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-4 text-white shadow-md">
                 <div class="flex justify-between items-start">
                     <div>
                         <span class="text-[11px] font-semibold bg-white/20 px-2 py-0.5 rounded-full uppercase tracking-wider">Hızlı Talep Girişi</span>
                         <h2 class="text-base font-bold mt-1">Yeni Sevkiyat Kaydı Oluştur</h2>
                     </div>
-                    <i class="fa-solid fa-truck-fast text-2xl text-blue-200 opacity-80"></i>
+                    <!-- KABİN BİLGİLERİ BUTONU -->
+                    <button type="button" onclick="openCabinetInfoModal()" class="bg-white text-blue-700 hover:bg-blue-50 font-bold px-3 py-1.5 rounded-xl text-xs shadow-sm transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-ruler-combined text-cyan-600"></i>
+                        <span>Kabin Bilgileri</span>
+                    </button>
                 </div>
-                <p class="text-xs text-blue-100 mt-2">Bölge seçtiğinizde ilgili bölge sevkiyatçısı otomatik olarak atanacaktır.</p>
+                <p class="text-xs text-blue-100 mt-2">Müşteri numarası girdiğinizde kayıtlı ünvan otomatik gelir. Bulunamazsa manuel yazabilirsiniz.</p>
             </div>
 
+            <!-- Main Input Form Card -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 space-y-4">
+                
                 <form id="dispatchForm" onsubmit="saveDispatch(event)" class="space-y-3.5">
 
+                    <!-- 0. OTOMATİK TARİH -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
                             <i class="fa-regular fa-calendar-days text-blue-600 mr-1"></i> Talep Tarihi
@@ -76,19 +84,21 @@
                         <input type="text" id="reqDate" readonly class="w-full bg-slate-200/70 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-600 outline-none cursor-not-allowed">
                     </div>
                     
+                    <!-- 1. BÖLGE SEÇİMİ -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
                             <i class="fa-solid fa-map-location-dot text-blue-600 mr-1"></i> ASU-RUT Bölgesi <span class="text-red-500">*</span>
                         </label>
                         <select id="regionSelect" required onchange="updateDispatcherInfo()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs md:text-sm font-medium text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition">
                             <option value="">Bölge Seçiniz...</option>
-                            <option value="BÖLGE 1: SELİM ARSLAN">BÖLGE 1: SELİM ARSLAN </option>
-                            <option value="BÖLGE 2: SERKAN PEHLİVAN ">BÖLGE 2: SERKAN PEHLİVAN</option>
-                            <option value="BÖLGE 3: YASİN ERCAN">BÖLGE 3: YASİN ERCAN</option>
-                            <option value="BÖLGE 4: ÖZGÜR&İSMAİL">BÖLGE 4: ÖZGÜR&İSMAİL</option>
+                            <option value="SELİM ARSLAN">SELİM ARSLAN</option>
+                            <option value="SERKAN PEHLİVAN ">SERKAN PEHLİVAN</option>
+                            <option value="YASİN ERCAN">YASİN ERCAN</option>
+                            <option value="ÖZGÜR&İSMAİL">ÖZGÜR&İSMAİL</option>
                         </select>
                     </div>
 
+                    <!-- Otomatik Atanan Sevkiyatçı Bilgi Kutusu -->
                     <div id="dispatcherBox" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center justify-between">
                         <div class="flex items-center space-x-2.5">
                             <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
@@ -102,9 +112,10 @@
                         <span class="text-[10px] bg-blue-200 text-blue-800 font-semibold px-2 py-0.5 rounded">Otomatik Atandı</span>
                     </div>
 
+                    <!-- 2. SATIŞ ELEMANI SEÇİMİ -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
-                            <i class="fa-solid fa-user-tie text-blue-600 mr-1"></i> Satış Elemanı <span class="text-red-500">*</span>
+                            <i class="fa-solid fa-user-tie text-blue-600 mr-1"></i> Satış Elemanı / Rüt <span class="text-red-500">*</span>
                         </label>
                         <select id="salesRep" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs md:text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition">
                             <option value="">Satış Temsilcisi Seçin...</option>
@@ -133,24 +144,24 @@
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Talep No</label>
-                            <input type="text" id="reqNo" placeholder="Örn: 9841" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
+                    <!-- 3. MÜŞTERİ NO (Otomatik Eşleme Tetikleyici) -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-bold text-slate-700 uppercase">Müşteri No <span class="text-red-500">*</span></label>
+                            <span id="customerMatchStatus" class="text-[10px] text-slate-400 font-medium"></span>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Müşteri No <span class="text-red-500">*</span></label>
-                            <input type="text" id="custNo" required placeholder="Örn: 0106374" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs font-semibold font-mono text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
-                        </div>
+                        <input type="text" id="custNo" required oninput="lookupCustomer(this.value)" placeholder="Örn: 0106374" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-semibold font-mono text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
                     </div>
 
+                    <!-- 4. MÜŞTERİ ÜNVANI - TABELA ADI (Otomatik veya Manuel) -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
                             Müşteri Ünvanı / Tabela Adı <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" id="custName" required placeholder="Örn: TEZCAN - PİLİÇ DONDURMA" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs uppercase font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
+                        <input type="text" id="custName" required placeholder="Müşteri No girin veya manuel yazın..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs uppercase font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
                     </div>
 
+                    <!-- 5. DOLAP DIŞ GÖRÜNTÜSÜ (STİCKER) -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Dolap Dış Görüntüsü (Sticker)</label>
                         <select id="sticker" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
@@ -160,66 +171,25 @@
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Gidecek Kabin</label>
-                            <select id="outgoingCabinet" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
-                                <option value="">Seçiniz...</option>
-                                <option value="100 Lt ">100 Lt </option>
-                                <option value="200 Lt ">200 Lt </option>
-                                <option value="300 Lt ">300 Lt </option>
-                                <option value="400 Lt ">400 Lt </option>
-                                <option value="500 Lt">500 Lt</option>
-                                <option value="600 Lt ">600 Lt </option>
-                                <option value="DİKEY ">DİKEY </option>
-                                <option value="TEK KAPILI MİNİ ">TEK KAPILI MİNİ </option>
-                                <option value="800 Lt ">800 Lt </option>
-                                <option value="5 GÖZ">5 GÖZ</option>
-                                <option value="7 GÖZ ">7 GÖZ </option>
-                                <option value="10 GÖZ  ">10 GÖZ </option>
-                                <option value="14 GÖZ">14 GÖZ</option>
-                                <option value="18 GÖZ ">18 GÖZ</option>
-                                <option value="ANKA">ANKA</option>
-                                <option value="FIÇI">FIÇI</option>
-                            </select>
+                    <!-- 6. GİDECEK VE ALINACAK KABİNLER -->
+                    <div class="bg-slate-50/80 border border-slate-200 rounded-2xl p-3.5 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold text-slate-700 uppercase">
+                                <i class="fa-solid fa-boxes-stacked text-blue-600 mr-1"></i> Kabin Talepleri (Opsiyonel)
+                            </label>
+                            <button type="button" onclick="addCabinetRow()" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-lg text-[11px] font-bold shadow-xs flex items-center space-x-1 transition">
+                                <i class="fa-solid fa-plus text-[10px]"></i>
+                                <span>Kabin Ekle</span>
+                            </button>
                         </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Dolap Durumu</label>
-                            <select id="cabinetCondition" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
-                                <option value="YENİ" class="text-green-600">YENİ</option>
-                                <option value="KULLANILMIŞ" class="text-amber-600">KULLANILMIŞ</option>
-                            </select>
+                        <p class="text-[11px] text-slate-500 leading-tight">İsteğe bağlı olarak gidecek ve alınacak kabin çiftlerini ekleyebilirsiniz.</p>
+                        
+                        <div id="cabinRowsContainer" class="space-y-3">
+                            <!-- Dinamik Kabin Satırları Alanı -->
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
-                            <i class="fa-solid fa-rotate-left text-blue-600 mr-1"></i> Alınacak Kabin (Geri Alınacak)
-                        </label>
-                        <select id="incomingCabinet" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs md:text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition">
-                            <option value="">Alınacak Kabin Seçiniz...</option>
-                            <option value="Yok (Yeni Kurulum)">Yok (Yeni Kurulum)</option>
-                            <option value="100 Lt ">100 Lt </option>
-                            <option value="200 Lt ">200 Lt </option>
-                            <option value="300 Lt ">300 Lt </option>
-                            <option value="400 Lt ">400 Lt </option>
-                            <option value="500 Lt">500 Lt</option>
-                            <option value="600 Lt ">600 Lt </option>
-                            <option value="DİKEY ">DİKEY </option>
-                            <option value="TEK KAPILI MİNİ ">TEK KAPILI MİNİ </option>
-                            <option value="800 Lt ">800 Lt </option>
-                            <option value="5 GÖZ">5 GÖZ</option>
-                            <option value="7 GÖZ ">7 GÖZ </option>
-                            <option value="10 GÖZ  ">10 GÖZ </option>
-                            <option value="14 GÖZ">14 GÖZ</option>
-                            <option value="18 GÖZ ">18 GÖZ</option>
-                            <option value="ANKA">ANKA</option>
-                            <option value="FIÇI">FIÇI</option>
-                            <option value="Arızalı / Hurda Dolap">Arızalı / Hurda Dolap</option>
-                        </select>
-                    </div>
-
+                    <!-- GİDECEK MALZEME -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
                             <i class="fa-solid fa-box-open text-blue-600 mr-1"></i> Gidecek Malzeme (Açıklama)
@@ -227,11 +197,13 @@
                         <input type="text" id="outgoingMaterial" placeholder="Örn: Şemsiye, Banner, 2 adet sepet vb..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
                     </div>
 
+                    <!-- 8. AÇIKLAMA ALANI -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Bilgi, Açıklama, Not</label>
                         <textarea id="notes" rows="2" placeholder="Özel adres tarifi, kat bilgisi vb..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none"></textarea>
                     </div>
 
+                    <!-- KAYDET BUTONU -->
                     <div class="pt-2">
                         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-bold py-3 px-4 rounded-xl shadow-md transition duration-150 flex items-center justify-center space-x-2 text-xs uppercase tracking-wider">
                             <i class="fa-solid fa-floppy-disk"></i>
@@ -246,14 +218,20 @@
         <!-- LIST / DASHBOARD VIEW -->
         <div id="listSection" class="hidden space-y-4">
             
-            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
-                <p class="text-[11px] font-bold text-slate-500 uppercase mb-2">Bölgeye Göre Filtrele:</p>
+            <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                <div class="flex justify-between items-center">
+                    <p class="text-[11px] font-bold text-slate-500 uppercase">Bölgeye Göre Filtrele:</p>
+                    <button onclick="exportCurrentRegionPDF()" class="bg-rose-600 hover:bg-rose-700 text-white font-semibold py-1.5 px-3 rounded-xl text-[11px] flex items-center space-x-1.5 shadow-xs transition">
+                        <i class="fa-solid fa-file-pdf text-xs"></i>
+                        <span id="pdfBtnText">Bu Bölgeyi PDF İndir</span>
+                    </button>
+                </div>
                 <div class="grid grid-cols-2 gap-2 text-xs">
                     <button onclick="filterRegion('ALL')" id="filter-ALL" class="bg-blue-600 text-white font-semibold py-2 px-2.5 rounded-xl transition text-center shadow-xs">Tümü (<span id="countAll">0</span>)</button>
-                    <button onclick="filterRegion('1')" id="filter-1" class="bg-slate-100 text-slate-700 font-medium py-2 px-2.5 rounded-xl transition text-center">Bölge 1</button>
-                    <button onclick="filterRegion('2')" id="filter-2" class="bg-slate-100 text-slate-700 font-medium py-2 px-2.5 rounded-xl transition text-center">Bölge 2</button>
-                    <button onclick="filterRegion('3')" id="filter-3" class="bg-slate-100 text-slate-700 font-medium py-2 px-2.5 rounded-xl transition text-center">Bölge 3</button>
-                    <button onclick="filterRegion('4')" id="filter-4" class="bg-slate-100 text-slate-700 font-medium py-2 px-2.5 rounded-xl transition text-center col-span-2">Bölge 4</button>
+                    <button onclick="filterRegion('1')" id="filter-1" class="bg-slate-100 text-slate-700 font-medium py-2 px-2.5 rounded-xl transition text-center">SELİM ARSLAN</button>
+                    <button onclick="filterRegion('2')" id="filter-2" class="bg-slate-100 text-slate-700 font-medium py-2 px-2.5 rounded-xl transition text-center">SERKAN PEHLİVAN</button>
+                    <button onclick="filterRegion('3')" id="filter-3" class="bg-slate-100 text-slate-700 font-medium py-2 px-2.5 rounded-xl transition text-center">YASİN ERCAN</button>
+                    <button onclick="filterRegion('4')" id="filter-4" class="bg-slate-100 text-slate-700 font-medium py-2 px-2.5 rounded-xl transition text-center col-span-2">ÖZGÜR&İSMAİL</button>
                 </div>
             </div>
 
@@ -267,6 +245,87 @@
         </div>
 
     </main>
+
+    <!-- KABİN BİLGİLERİ GÖRSEL MODALI (14 GÖZLÜ ÖLÇÜSÜ EKLENMİŞTİR) -->
+    <div id="cabinetInfoModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-4 space-y-3 shadow-2xl border border-slate-100 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                <div class="flex items-center space-x-2">
+                    <div class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+                        <i class="fa-solid fa-ruler-combined"></i>
+                    </div>
+                    <h3 class="font-bold text-sm text-slate-800">Kabin Tipleri ve Ölçü Tablosu</h3>
+                </div>
+                <button onclick="closeCabinetInfoModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <div class="overflow-auto flex-grow flex items-center justify-center bg-slate-900 rounded-xl p-3">
+                <!-- Güncellenmiş Vektörel SVG Şema (14 Gözlü Ölçüsü Dahil Edilmiştir) -->
+                <svg viewBox="0 0 680 540" class="w-full h-auto rounded-lg shadow-md bg-slate-900 text-white font-sans" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="100%" height="100%" fill="#0f172a" rx="12"/>
+                    
+                    <!-- Başlık -->
+                    <text x="340" y="32" text-anchor="middle" fill="#38bdf8" font-size="16" font-weight="bold" letter-spacing="1">ALGİDA / DONDURMA KABİN TİPLERİ VE ÖLÇÜLERİ</text>
+                    <line x1="40" y1="44" x2="640" y2="44" stroke="#334155" stroke-width="2"/>
+
+                    <!-- Sandık Tip Kabinler (Ölçülerle) -->
+                    <g transform="translate(40, 60)">
+                        <rect x="0" y="0" width="280" height="200" rx="10" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+                        <rect x="15" y="15" width="250" height="30" rx="6" fill="#2563eb" opacity="0.8"/>
+                        <text x="140" y="35" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="bold">SANDIK TİPİ KABİNLER</text>
+                        
+                        <text x="25" y="66" fill="#cbd5e1" font-size="11">• 100 Lt: <tspan fill="#38bdf8" font-weight="bold">60 x 60 x 85 cm</tspan></text>
+                        <text x="25" y="92" fill="#cbd5e1" font-size="11">• 200 Lt: <tspan fill="#38bdf8" font-weight="bold">80 x 65 x 85 cm</tspan></text>
+                        <text x="25" y="118" fill="#cbd5e1" font-size="11">• 300 / 400 Lt: <tspan fill="#38bdf8" font-weight="bold">110/130 x 70 x 85 cm</tspan></text>
+                        <text x="25" y="144" fill="#cbd5e1" font-size="11">• 500 / 600 Lt: <tspan fill="#38bdf8" font-weight="bold">150/165 x 75 x 85 cm</tspan></text>
+                        <text x="25" y="170" fill="#cbd5e1" font-size="11">• 800 Lt (Maxi): <tspan fill="#38bdf8" font-weight="bold">200 x 80 x 88 cm</tspan></text>
+                    </g>
+
+                    <!-- Dikey Tip Kabinler (Ölçülerle) -->
+                    <g transform="translate(340, 60)">
+                        <rect x="0" y="0" width="300" height="200" rx="10" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+                        <rect x="15" y="15" width="270" height="30" rx="6" fill="#0d9488" opacity="0.8"/>
+                        <text x="165" y="35" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="bold">DİKEY TİP KABİNLER</text>
+                        
+                        <text x="25" y="66" fill="#cbd5e1" font-size="11">• Tek Kapılı Mini: <tspan fill="#2dd4bf" font-weight="bold">60 x 60 x 160 cm</tspan></text>
+                        <text x="25" y="92" fill="#cbd5e1" font-size="11">• Standart Dikey: <tspan fill="#2dd4bf" font-weight="bold">65 x 70 x 195 cm</tspan></text>
+                        <text x="25" y="118" fill="#cbd5e1" font-size="11">• Çift Kapılı Büyük: <tspan fill="#2dd4bf" font-weight="bold">120 x 75 x 200 cm</tspan></text>
+                        <text x="25" y="144" fill="#cbd5e1" font-size="11">• Anka / Fıçı Özel: <tspan fill="#2dd4bf" font-weight="bold">Model Bazlı Değişir</tspan></text>
+                        <text x="25" y="170" fill="#94a3b8" font-size="10">*(Yükseklikler kapı geçişleri için önemlidir)*</text>
+                    </g>
+
+                    <!-- Gözlü (Impulse / Çikolata) Dolaplar (14 Gözlü Eklendi) -->
+                    <g transform="translate(40, 275)">
+                        <rect x="0" y="0" width="600" height="195" rx="10" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+                        <rect x="15" y="15" width="570" height="30" rx="6" fill="#7c3aed" opacity="0.8"/>
+                        <text x="300" y="35" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="bold">Food Service Reyon Dolapları</text>
+                        
+                        <text x="30" y="66" fill="#cbd5e1" font-size="11">• 5 Gözlü: <tspan fill="#c084fc" font-weight="bold">75 x 70 x 90 cm</tspan></text>
+                        <text x="30" y="90" fill="#cbd5e1" font-size="11">• 7 Gözlü: <tspan fill="#c084fc" font-weight="bold">100 x 70 x 90 cm</tspan></text>
+                        <text x="30" y="114" fill="#cbd5e1" font-size="11">• 10 Gözlü: <tspan fill="#c084fc" font-weight="bold">140 x 70 x 90 cm</tspan></text>
+                        <text x="30" y="138" fill="#cbd5e1" font-size="11">• 14 Gözlü: <tspan fill="#f43f5e" font-weight="bold">185 x 72 x 90 cm</tspan></text>
+                        
+                        <text x="320" y="66" fill="#cbd5e1" font-size="11">• 18 Gözlü: <tspan fill="#c084fc" font-weight="bold">220 x 72 x 90 cm</tspan></text>
+                        <text x="320" y="90" fill="#f43f5e" font-weight="bold" font-size="11">⚠️ Önemli Uyarı:</text>
+                        <text x="415" y="90" fill="#cbd5e1" font-size="11">Sevkiyat öncesi</text>
+                        <text x="320" y="110" fill="#cbd5e1" font-size="11">işletmenin kapı genişliği</text>
+                        <text x="320" y="130" fill="#cbd5e1" font-size="11">ve merdiven durumunu kontrol ediniz.</text>
+
+                        <text x="320" y="165" fill="#38bdf8" font-size="10" font-weight="bold">Standart Ölçü Formatı: Genişlik x Derinlik x Yükseklik</text>
+                    </g>
+
+                    <!-- Alt Bilgi -->
+                    <text x="340" y="515" text-anchor="middle" fill="#64748b" font-size="10">Algida Operasyonel Sevkiyat ve Dağıtım Rehberi © 2026</text>
+                </svg>
+            </div>
+            
+            <button onclick="closeCabinetInfoModal()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2.5 rounded-xl text-xs transition">
+                Pencereyi Kapat
+            </button>
+        </div>
+    </div>
 
     <!-- Yönetici Giriş / İşlem Modalı -->
     <div id="adminModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
@@ -283,24 +342,41 @@
                 </button>
             </div>
 
+            <!-- Şifre Alanı -->
             <div id="adminLoginArea" class="space-y-3">
-                <p class="text-xs text-slate-500">Excel raporu indirmek ve yönetici işlemlerine erişmek için şifre giriniz.</p>
+                <p class="text-xs text-slate-500">Yönetici işlemlerine erişmek için şifre giriniz.</p>
                 <input type="password" id="adminPass" placeholder="Yönetici Şifresi (Örn: 1923)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none">
                 <button onclick="checkAdminLogin()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition">
                     Giriş Yap
                 </button>
             </div>
 
+            <!-- Yönetim İşlemleri ve Müşteri Excel Yükleme -->
             <div id="adminPanelActions" class="hidden space-y-3">
                 <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 flex items-center justify-between">
                     <span>Yetkilendirme Başarılı</span>
                     <i class="fa-solid fa-circle-check text-emerald-600"></i>
                 </div>
-                <button onclick="exportExcel()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-sm transition">
+
+                <!-- MÜŞTERİ LİSTESİ EXCEL YÜKLEME ALANI -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                    <label class="block text-xs font-bold text-slate-700 uppercase">
+                        <i class="fa-solid fa-file-excel text-emerald-600 mr-1"></i> Müşteri Veritabanı Excel Yükle
+                    </label>
+                    <p class="text-[10px] text-slate-500">Excel içinde 1. sütun/başlık "Müşteri No", 2. sütun/başlık "Ünvan" olmalıdır.</p>
+                    <input type="file" id="customerExcelFile" accept=".xlsx, .xls, .csv" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                    <button onclick="uploadCustomerExcel()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow-xs transition">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Müşteri Listesini Güncelle</span>
+                    </button>
+                    <p id="loadedCustomerCount" class="text-[10px] font-semibold text-center text-blue-600 mt-1">Yüklü Müşteri: 0 kayıt</p>
+                </div>
+
+                <button onclick="exportExcel()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-sm transition">
                     <i class="fa-solid fa-file-excel text-sm"></i>
-                    <span>Tüm Kayıtları Excel İndir (Kenarlıklı)</span>
+                    <span>Tüm Kayıtları Excel İndir</span>
                 </button>
-                <button onclick="clearAll()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 transition">
+                <button onclick="clearAll()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 transition">
                     <i class="fa-solid fa-trash-can"></i>
                     <span>Tüm Veritabanını Temizle</span>
                 </button>
@@ -313,55 +389,210 @@
         <p>4 Bölgeli Dondurma Operasyon Sistemi &bull; <span id="activeDispatcherFooter" class="font-semibold text-blue-600">Sevkiyat Ekibi Aktif</span></p>
     </footer>
 
-    <!-- JavaScript & Firebase Mantığı -->
+    <!-- JavaScript Mantığı -->
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAitBeKLzNj7KkmiWkONn1WprCiQnHhit8",
-            authDomain: "kabin-a3229.firebaseapp.com",
-            databaseURL: "https://kabin-a3229-default-rtdb.firebaseio.com", 
-            projectId: "kabin-a3229",
-            storageBucket: "kabin-a3229.appspot.com",
-            messagingSenderId: "385079167799",
-            appId: "1:385079167799:web:9044ecd827a4529a28a8b2"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.database();
-
         const dispatchers = {
-            "BÖLGE 1: SELİM ARSLAN": "Selim Arslan (Sevkiyat Sorumlusu)",
-            "BÖLGE 2: SERKAN PEHLİVAN ": "Serkan Pehlivan (Sevkiyat Sorumlusu)",
-            "BÖLGE 3: YASİN ERCAN": "Yasin Ercan (Sevkiyat Sorumlusu)",
-            "BÖLGE 4: ÖZGÜR&İSMAİL": "Özgür & İsmail (Sevkiyat Sorumlusu)"
+            "SELİM ARSLAN": "Selim Arslan (Sevkiyat Sorumlusu)",
+            "SERKAN PEHLİVAN ": "Serkan Pehlivan (Sevkiyat Sorumlusu)",
+            "YASİN ERCAN": "Yasin Ercan (Sevkiyat Sorumlusu)",
+            "ÖZGÜR&İSMAİL": "Özgür & İsmail (Sevkiyat Sorumlusu)"
         };
 
-        let records = [];
+        const cabinetOptionsHTML = `
+            <option value="">Seçiniz...</option>
+            <option value="100 Lt">100 Lt</option>
+            <option value="200 Lt">200 Lt</option>
+            <option value="300 Lt">300 Lt</option>
+            <option value="400 Lt">400 Lt</option>
+            <option value="500 Lt">500 Lt</option>
+            <option value="600 Lt">600 Lt</option>
+            <option value="DİKEY">DİKEY</option>
+            <option value="TEK KAPILI MİNİ">TEK KAPILI MİNİ</option>
+            <option value="800 Lt">800 Lt</option>
+            <option value="5 GÖZ">5 GÖZ</option>
+            <option value="7 GÖZ">7 GÖZ</option>
+            <option value="10 GÖZ">10 GÖZ</option>
+            <option value="14 GÖZ">14 GÖZ</option>
+            <option value="18 GÖZ">18 GÖZ</option>
+            <option value="ANKA">ANKA</option>
+            <option value="FIÇI">FIÇI</option>
+        `;
+
+        const incomingCabinetOptionsHTML = `
+            <option value="">Alınacak Kabin Seçiniz...</option>
+            <option value="Yok (Yeni Kurulum)">Yok (Yeni Kurulum)</option>
+            <option value="100 Lt">100 Lt</option>
+            <option value="200 Lt">200 Lt</option>
+            <option value="300 Lt">300 Lt</option>
+            <option value="400 Lt">400 Lt</option>
+            <option value="500 Lt">500 Lt</option>
+            <option value="600 Lt">600 Lt</option>
+            <option value="DİKEY">DİKEY</option>
+            <option value="TEK KAPILI MİNİ">TEK KAPILI MİNİ</option>
+            <option value="800 Lt">800 Lt</option>
+            <option value="5 GÖZ">5 GÖZ</option>
+            <option value="7 GÖZ">7 GÖZ</option>
+            <option value="10 GÖZ">10 GÖZ</option>
+            <option value="14 GÖZ">14 GÖZ</option>
+            <option value="18 GÖZ">18 GÖZ</option>
+            <option value="ANKA">ANKA</option>
+            <option value="FIÇI">FIÇI</option>
+            <option value="Arızalı / Hurda Dolap">Arızalı / Hurda Dolap</option>
+        `;
+
+        let records = JSON.parse(localStorage.getItem('dispatchRecordsV6')) || [];
+        let customerDatabase = JSON.parse(localStorage.getItem('customerDatabaseV1')) || {};
         let currentFilter = 'ALL';
 
         function initApp() {
-            const dateEl = document.getElementById('reqDate');
-            if(dateEl) {
-                dateEl.value = new Date().toLocaleDateString('tr-TR');
+            const today = new Date().toLocaleDateString('tr-TR');
+            document.getElementById('reqDate').value = today;
+            updateBadge();
+            renderCards();
+            resetCabinetRows();
+            updateCustomerCountDisplay();
+        }
+
+        function updateCustomerCountDisplay() {
+            const count = Object.keys(customerDatabase).length;
+            const el = document.getElementById('loadedCustomerCount');
+            if (el) el.innerText = `Yüklü Müşteri: ${count} kayıt`;
+        }
+
+        // Kabin Bilgileri Modal Fonksiyonları
+        function openCabinetInfoModal() {
+            document.getElementById('cabinetInfoModal').classList.remove('hidden');
+        }
+
+        function closeCabinetInfoModal() {
+            document.getElementById('cabinetInfoModal').classList.add('hidden');
+        }
+
+        function lookupCustomer(custNoVal) {
+            const cleanNo = custNoVal.trim();
+            const nameInput = document.getElementById('custName');
+            const statusEl = document.getElementById('customerMatchStatus');
+
+            if (!cleanNo) {
+                statusEl.innerText = "";
+                return;
             }
 
-            db.ref('dispatchRecords').on('value', (snapshot) => {
-                const data = snapshot.val();
-                records = [];
-                if (data) {
-                    Object.keys(data).forEach(key => {
-                        records.push({
-                            firebaseKey: key,
-                            ...data[key]
-                        });
+            if (customerDatabase[cleanNo]) {
+                nameInput.value = customerDatabase[cleanNo];
+                statusEl.innerHTML = '<span class="text-emerald-600 font-bold"><i class="fa-solid fa-check"></i> Otomatik Eşleşti</span>';
+            } else {
+                statusEl.innerHTML = '<span class="text-amber-600 font-medium">Listede yok, manuel yazabilirsiniz</span>';
+            }
+        }
+
+        function uploadCustomerExcel() {
+            const fileInput = document.getElementById('customerExcelFile');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Lütfen bir Excel dosyası seçiniz.');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                    let newDb = {};
+                    let count = 0;
+
+                    json.forEach((row) => {
+                        if (row && row.length >= 2) {
+                            let mNo = row[0] ? row[0].toString().trim() : '';
+                            let mName = row[1] ? row[1].toString().trim().toUpperCase() : '';
+                            
+                            if (mNo && mName && mNo.toLowerCase() !== 'müşteri no' && mNo.toLowerCase() !== 'musteri no') {
+                                newDb[mNo] = mName;
+                                count++;
+                            }
+                        }
                     });
+
+                    if (count > 0) {
+                        customerDatabase = newDb;
+                        localStorage.setItem('customerDatabaseV1', JSON.stringify(customerDatabase));
+                        updateCustomerCountDisplay();
+                        alert(`Başarıyla ${count} müşteri kaydı yüklendi!`);
+                    } else {
+                        alert('Excel dosyasında uygun formatta veri bulunamadı.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Excel dosyası okunurken bir hata oluştu.');
                 }
-                updateBadge();
-                renderCards();
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function resetCabinetRows() {
+            const container = document.getElementById('cabinRowsContainer');
+            container.innerHTML = '';
+            addCabinetRow();
+        }
+
+        function addCabinetRow() {
+            const container = document.getElementById('cabinRowsContainer');
+            const index = container.children.length + 1;
+            
+            const rowDiv = document.createElement('div');
+            rowDiv.className = "bg-white p-3 rounded-xl border border-slate-200 space-y-2.5 relative shadow-xs";
+            rowDiv.innerHTML = `
+                <div class="flex justify-between items-center border-b border-slate-100 pb-1.5">
+                    <span class="text-[11px] font-bold text-blue-700 uppercase">Kabin Talebi #${index}</span>
+                    <button type="button" onclick="removeCabinetRow(this)" class="text-red-500 hover:text-red-700 text-xs font-bold px-1.5 py-0.5 rounded bg-red-50 hover:bg-red-100 transition"><i class="fa-solid fa-trash"></i> Sil</button>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Gidecek Kabin</label>
+                        <select name="outgoingCabinet" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
+                            ${cabinetOptionsHTML}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Dolap Durumu</label>
+                        <select name="cabinetCondition" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="YENİ" class="text-green-600">YENİ</option>
+                            <option value="KULLANILMIŞ" class="text-amber-600">KULLANILMIŞ</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Alınacak Kabin (Geri Alınacak)</label>
+                    <select name="incomingCabinet" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
+                        ${incomingCabinetOptionsHTML}
+                    </select>
+                </div>
+            `;
+            container.appendChild(rowDiv);
+            updateRowNumbers();
+        }
+
+        function removeCabinetRow(btn) {
+            btn.closest('div.bg-white').remove();
+            updateRowNumbers();
+        }
+
+        function updateRowNumbers() {
+            const container = document.getElementById('cabinRowsContainer');
+            Array.from(container.children).forEach((row, idx) => {
+                const titleSpan = row.querySelector('span.uppercase');
+                if(titleSpan) {
+                    titleSpan.innerText = `Kabin Talebi #${idx + 1}`;
+                }
             });
         }
-        window.initApp = initApp;
 
         function switchView(view) {
             const formSec = document.getElementById('formSection');
@@ -382,7 +613,6 @@
                 renderCards();
             }
         }
-        window.switchView = switchView;
 
         function updateDispatcherInfo() {
             const region = document.getElementById('regionSelect').value;
@@ -399,10 +629,34 @@
                 footerEl.innerText = 'Sevkiyat Ekibi Aktif';
             }
         }
-        window.updateDispatcherInfo = updateDispatcherInfo;
 
         function saveDispatch(e) {
             e.preventDefault();
+
+            const rows = document.querySelectorAll('#cabinRowsContainer > div');
+            let cabinets = [];
+            
+            rows.forEach((row) => {
+                const outCab = row.querySelector('[name="outgoingCabinet"]').value;
+                const cond = row.querySelector('[name="cabinetCondition"]').value;
+                const inCab = row.querySelector('[name="incomingCabinet"]').value || '-';
+                
+                if (outCab || inCab !== '-') {
+                    cabinets.push({
+                        outgoingCabinet: outCab || '-',
+                        cabinetCondition: cond,
+                        incomingCabinet: inCab
+                    });
+                }
+            });
+
+            if (cabinets.length === 0) {
+                cabinets.push({
+                    outgoingCabinet: 'Belirtilmedi',
+                    cabinetCondition: '-',
+                    incomingCabinet: '-'
+                });
+            }
 
             const region = document.getElementById('regionSelect').value;
             const newRecord = {
@@ -410,128 +664,133 @@
                 region: region,
                 dispatcher: dispatchers[region] || 'Atanmadı',
                 salesRep: document.getElementById('salesRep').value,
-                reqNo: document.getElementById('reqNo').value || '-',
                 custNo: document.getElementById('custNo').value,
                 custName: document.getElementById('custName').value.toUpperCase(),
                 sticker: document.getElementById('sticker').value,
-                outgoingCabinet: document.getElementById('outgoingCabinet').value || '-',
-                cabinetCondition: document.getElementById('cabinetCondition').value,
-                incomingCabinet: document.getElementById('incomingCabinet').value || '-',
+                cabinets: cabinets,
                 outgoingMaterial: document.getElementById('outgoingMaterial').value || '-',
                 notes: document.getElementById('notes').value || '-',
                 date: document.getElementById('reqDate').value
             };
 
-            db.ref('dispatchRecords').push(newRecord)
-                .then(() => {
-                    alert('Sevkiyat talebi tüm cihazlara ve ilgili bölgeye başarıyla iletildi!');
-                    document.getElementById('dispatchForm').reset();
-                    document.getElementById('dispatcherBox').classList.add('hidden');
-                    document.getElementById('reqDate').value = new Date().toLocaleDateString('tr-TR');
-                    switchView('list');
-                })
-                .catch((error) => {
-                    alert('Kayıt sırasında hata oluştu: ' + error.message);
-                });
-        }
-        window.saveDispatch = saveDispatch;
+            records.push(newRecord);
+            localStorage.setItem('dispatchRecordsV6', JSON.stringify(records));
 
-        function deleteRecord(firebaseKey) {
-            if (confirm('Bu sevkiyat talebini tüm sistemden silmek istediğinize emin misiniz?')) {
-                db.ref('dispatchRecords/' + firebaseKey).remove()
-                    .catch((error) => {
-                        alert('Silme hatası: ' + error.message);
-                    });
+            alert('Sevkiyat talebi başarıyla kaydedildi!');
+            document.getElementById('dispatchForm').reset();
+            document.getElementById('dispatcherBox').classList.add('hidden');
+            document.getElementById('customerMatchStatus').innerText = '';
+            document.getElementById('reqDate').value = new Date().toLocaleDateString('tr-TR');
+            resetCabinetRows();
+            
+            updateBadge();
+            switchView('list');
+        }
+
+        function deleteRecord(id) {
+            if (confirm('Bu sevkiyat talebini silmek istediğinize emin misiniz?')) {
+                records = records.filter(r => r.id !== id);
+                localStorage.setItem('dispatchRecordsV6', JSON.stringify(records));
+                updateBadge();
+                renderCards();
             }
         }
-        window.deleteRecord = deleteRecord;
 
         function updateBadge() {
-            const badge = document.getElementById('badgeCount');
-            const countAll = document.getElementById('countAll');
-            if(badge) badge.innerText = records.length;
-            if(countAll) countAll.innerText = records.length;
+            document.getElementById('badgeCount').innerText = records.length;
+            document.getElementById('countAll').innerText = records.length;
         }
 
         function filterRegion(regCode) {
             currentFilter = regCode;
             ['ALL', '1', '2', '3', '4'].forEach(code => {
                 const btn = document.getElementById(`filter-${code}`);
-                if(btn) {
-                    if (code === regCode) {
-                        btn.className = "bg-blue-600 text-white font-semibold py-2 px-2.5 rounded-xl transition text-center shadow-xs " + (code==='4'?'col-span-2':'');
-                    } else {
-                        btn.className = "bg-slate-100 text-slate-700 font-medium py-2 px-2.5 rounded-xl transition text-center " + (code==='4'?'col-span-2':'');
-                    }
+                if (code === regCode) {
+                    btn.className = "bg-blue-600 text-white font-semibold py-2 px-2.5 rounded-xl transition text-center shadow-xs " + (code==='4'?'col-span-2':'');
+                } else {
+                    btn.className = "bg-slate-100 text-slate-700 font-medium py-2 px-2.5 rounded-xl transition text-center " + (code==='4'?'col-span-2':'');
                 }
             });
+            
+            const pdfBtnText = document.getElementById('pdfBtnText');
+            if(regCode === 'ALL') {
+                pdfBtnText.innerText = "Tüm Bölgeleri PDF İndir";
+            } else {
+                pdfBtnText.innerText = `Bölge ${regCode} PDF İndir`;
+            }
+
             renderCards();
         }
-        window.filterRegion = filterRegion;
 
         function renderCards() {
             const container = document.getElementById('cardsContainer');
             const emptyState = document.getElementById('emptyListState');
-            if(!container) return;
             container.innerHTML = '';
 
             let filtered = records;
             if (currentFilter !== 'ALL') {
-                filtered = records.filter(r => r.region && r.region.startsWith(`BÖLGE ${currentFilter}:`));
+                filtered = records.filter(r => r.region.startsWith(`BÖLGE ${currentFilter}:`));
             }
 
             if (filtered.length === 0) {
-                if(emptyState) emptyState.classList.remove('hidden');
+                emptyState.classList.remove('hidden');
                 return;
             } else {
-                if(emptyState) emptyState.classList.add('hidden');
+                emptyState.classList.add('hidden');
             }
 
-            [...filtered].reverse().forEach((rec) => {
+            filtered.slice().reverse().forEach((rec) => {
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-2xl p-4 shadow-sm border border-slate-200/90 space-y-2.5 relative";
                 
-                const conditionBadge = rec.cabinetCondition === 'YENİ' 
-                    ? '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded-full">YENİ</span>'
-                    : '<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">KULLANILMIŞ</span>';
+                let cabinetsHTML = '';
+                rec.cabinets.forEach((cab, idx) => {
+                    const conditionBadge = cab.cabinetCondition === 'YENİ' 
+                        ? '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-1.5 py-0.5 rounded">YENİ</span>'
+                        : (cab.cabinetCondition === 'KULLANILMIŞ' ? '<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded">KULLANILMIŞ</span>' : '');
+
+                    cabinetsHTML += `
+                        <div class="bg-slate-50 rounded-xl p-2.5 space-y-1 text-[11px] border border-slate-100">
+                            <div class="font-bold text-blue-700 text-[10px] uppercase">Kabin #${idx + 1}</div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-500">Gidecek Kabin:</span>
+                                <span class="font-bold text-slate-800">${cab.outgoingCabinet} ${conditionBadge}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-500">Alınacak Kabin:</span>
+                                <span class="font-medium text-rose-700">${cab.incomingCabinet}</span>
+                            </div>
+                        </div>
+                    `;
+                });
 
                 card.innerHTML = `
                     <div class="flex justify-between items-start border-b border-slate-100 pb-2">
                         <div>
-                            <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wide bg-blue-50 px-2 py-0.5 rounded-md">${rec.region ? rec.region.split(':')[0] : ''}</span>
+                            <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wide bg-blue-50 px-2 py-0.5 rounded-md">${rec.region.split(':')[0]}</span>
                             <h3 class="font-bold text-xs text-slate-900 mt-1 uppercase">${rec.custName}</h3>
                         </div>
                         <div class="flex flex-col items-end space-y-1">
                             <span class="text-[10px] text-slate-400 font-mono">#${rec.custNo}</span>
-                            <button onclick="deleteRecord('${rec.firebaseKey}')" class="text-slate-400 hover:text-red-600 transition p-1 bg-slate-50 hover:bg-red-50 rounded" title="Kaydı Sil">
+                            <button onclick="deleteRecord(${rec.id})" class="text-slate-400 hover:text-red-600 transition p-1 bg-slate-50 hover:bg-red-50 rounded" title="Kaydı Sil">
                                 <i class="fa-solid fa-trash text-xs"></i>
                             </button>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-600 pt-1">
-                        <div><strong class="text-slate-700">Talep No:</strong> ${rec.reqNo}</div>
                         <div><strong class="text-slate-700">Satış Elemanı:</strong> ${rec.salesRep}</div>
+                        <div><strong class="text-slate-700">Sticker:</strong> ${rec.sticker}</div>
                         <div class="col-span-2"><strong class="text-slate-700">Sevkiyatçı:</strong> <span class="text-blue-700 font-medium">${rec.dispatcher}</span></div>
                     </div>
 
-                    <div class="bg-slate-50 rounded-xl p-2.5 space-y-1 text-[11px] border border-slate-100">
-                        <div class="flex justify-between items-center">
-                            <span class="text-slate-500">Gidecek Kabin:</span>
-                            <span class="font-bold text-slate-800">${rec.outgoingCabinet} ${rec.outgoingCabinet !== '-' ? conditionBadge : ''}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-slate-500">Sticker:</span>
-                            <span class="font-medium text-slate-700">${rec.sticker}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-slate-500">Alınacak Kabin:</span>
-                            <span class="font-medium text-rose-700">${rec.incomingCabinet}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-slate-500">Gidecek Malzeme:</span>
-                            <span class="font-medium text-indigo-700">${rec.outgoingMaterial}</span>
-                        </div>
+                    <div class="space-y-1.5 pt-1">
+                        ${cabinetsHTML}
+                    </div>
+
+                    <div class="bg-indigo-50/50 rounded-xl p-2.5 text-[11px] border border-indigo-100 flex justify-between items-center">
+                        <span class="text-slate-500 font-semibold">Gidecek Malzeme:</span>
+                        <span class="font-medium text-indigo-700">${rec.outgoingMaterial}</span>
                     </div>
 
                     ${rec.notes !== '-' ? `<p class="text-[11px] text-slate-500 italic bg-amber-50/50 p-2 rounded-lg border border-amber-100"><strong>Not:</strong> ${rec.notes}</p>` : ''}
@@ -544,7 +803,87 @@
                 container.appendChild(card);
             });
         }
-        window.renderCards = renderCards;
+
+        function exportCurrentRegionPDF() {
+            if (records.length === 0) {
+                alert('PDF olarak dışa aktarılacak kayıt bulunmuyor.');
+                return;
+            }
+
+            let filtered = records;
+            let titleText = "TÜM BÖLGELER SEVKİYAT VE KABİN TALEPLERİ";
+            
+            if (currentFilter !== 'ALL') {
+                filtered = records.filter(r => r.region.startsWith(`BÖLGE ${currentFilter}:`));
+                titleText = `BÖLGE ${currentFilter} SEVKİYAT VE KABİN TALEPLERİ`;
+            }
+
+            if (filtered.length === 0) {
+                alert('Seçilen kritere ait kayıt bulunamadı.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(16);
+            doc.setTextColor(30, 41, 59);
+            doc.text(titleText, 14, 15);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')} - Toplam Kayıt: ${filtered.length}`, 14, 22);
+
+            let tableRows = [];
+            let rowCounter = 1;
+
+            filtered.sort((a, b) => a.salesRep.localeCompare(b.salesRep, 'tr', { sensitivity: 'base' })).forEach(r => {
+                r.cabinets.forEach((cab, cIdx) => {
+                    const cabinInfoFormatted = `[ Talep #${cIdx + 1} ]\n` +
+                                               `• Gidecek Kabin: ${cab.outgoingCabinet} (${cab.cabinetCondition})\n` +
+                                               `• Alınacak Kabin: ${cab.incomingCabinet}`;
+
+                    tableRows.push([
+                        rowCounter++,
+                        r.region.split(':')[0],
+                        r.salesRep,
+                        r.custNo,
+                        r.custName,
+                        r.sticker,
+                        cabinInfoFormatted,
+                        r.outgoingMaterial,
+                        r.date
+                    ]);
+                });
+            });
+
+            doc.autoTable({
+                startY: 26,
+                head: [['#', 'Bölge', 'Satış Temsilcisi', 'Müşteri No', 'Müşteri Ünvanı / Tabela', 'Sticker', 'Kabin Bilgileri (Gidecek / Alınacak)', 'Malzeme', 'Tarih']],
+                body: tableRows,
+                theme: 'grid',
+                headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9, halign: 'center' },
+                bodyStyles: { fontSize: 8.5, textColor: [51, 65, 85], cellPadding: 3.5 },
+                columnStyles: {
+                    0: { cellWidth: 10, halign: 'center' },
+                    1: { cellWidth: 22 },
+                    2: { cellWidth: 30 },
+                    3: { cellWidth: 20 },
+                    4: { cellWidth: 50 },
+                    5: { cellWidth: 18 },
+                    6: { cellWidth: 65 },
+                    7: { cellWidth: 35 },
+                    8: { cellWidth: 20, halign: 'center' }
+                },
+                alternateRowStyles: { fillColor: [248, 250, 252] },
+                margin: { horizontal: 14 }
+            });
+
+            const fileName = currentFilter === 'ALL' ? 'tum_bolgeler_sevkiyat_raporu.pdf' : `bolge_${currentFilter}_sevkiyat_raporu.pdf`;
+            doc.save(fileName);
+        }
 
         function openAdminModal() {
             document.getElementById('adminModal').classList.remove('hidden');
@@ -552,12 +891,10 @@
             document.getElementById('adminLoginArea').classList.remove('hidden');
             document.getElementById('adminPanelActions').classList.add('hidden');
         }
-        window.openAdminModal = openAdminModal;
 
         function closeAdminModal() {
             document.getElementById('adminModal').classList.add('hidden');
         }
-        window.closeAdminModal = closeAdminModal;
 
         function checkAdminLogin() {
             const pass = document.getElementById('adminPass').value;
@@ -568,21 +905,16 @@
                 alert('Hatalı yönetici şifresi!');
             }
         }
-        window.checkAdminLogin = checkAdminLogin;
 
         function clearAll() {
-            if (confirm('Bulut veritabanındaki TÜM kayıtlar kalıcı olarak silinecek. Emin misiniz?')) {
-                db.ref('dispatchRecords').remove()
-                    .then(() => {
-                        alert('Veritabanı başarıyla sıfırlandı.');
-                        closeAdminModal();
-                    })
-                    .catch((error) => {
-                        alert('Hata: ' + error.message);
-                    });
+            if (confirm('Tüm kayıtlar kalıcı olarak silinecek. Emin misiniz?')) {
+                records = [];
+                localStorage.removeItem('dispatchRecordsV6');
+                updateBadge();
+                renderCards();
+                closeAdminModal();
             }
         }
-        window.clearAll = clearAll;
 
         function exportExcel() {
             if (records.length === 0) {
@@ -590,73 +922,104 @@
                 return;
             }
 
-            let html = `
-                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-                <head>
-                    <meta charset="UTF-8">
-                    <style>
-                        table { border-collapse: collapse; width: 100%; font-family: 'Calibri', Arial, sans-serif; font-size: 11pt; }
-                        th { background-color: #2563eb; color: #ffffff; font-weight: bold; border: 1px solid #000000; text-align: center; padding: 8px; }
-                        td { border: 1px solid #d3d3d3; padding: 6px; text-align: left; vertical-align: middle; }
-                    </style>
-                </head>
-                <body>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Bölge</th>
-                                <th>Sevkiyatçı</th>
-                                <th>Satış Temsilcisi</th>
-                                <th>Talep No</th>
-                                <th>Müşteri No</th>
-                                <th>Müşteri Ünvanı / Tabela</th>
-                                <th>Sticker</th>
-                                <th>Gidecek Kabin</th>
-                                <th>Dolap Durumu</th>
-                                <th>Alınacak Kabin</th>
-                                <th>Gidecek Malzeme</th>
-                                <th>Açıklama</th>
-                                <th>Tarih</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
+            const wb = XLSX.utils.book_new();
 
-            records.forEach(r => {
-                html += `
-                    <tr>
-                        <td>${r.region}</td>
-                        <td>${r.dispatcher}</td>
-                        <td>${r.salesRep}</td>
-                        <td>${r.reqNo}</td>
-                        <td>${r.custNo}</td>
-                        <td>${r.custName}</td>
-                        <td>${r.sticker}</td>
-                        <td>${r.outgoingCabinet}</td>
-                        <td>${r.cabinetCondition}</td>
-                        <td>${r.incomingCabinet}</td>
-                        <td>${r.outgoingMaterial}</td>
-                        <td>${r.notes}</td>
-                        <td>${r.date}</td>
-                    </tr>
-                `;
+            const regions = [
+                { key: 'SELİM ARSLAN', name: 'SELİM ARSLAN' },
+                { key: 'SERKAN PEHLİVAN', name: 'SERKAN PEHLİVAN' },
+                { key: 'YASİN ERCAN', name: 'YASİN ERCAN' },
+                { key: 'ÖZGÜR & İSMAİL', name: 'ÖZGÜR & İSMAİL' }
+            ];
+
+            regions.forEach(reg => {
+                let regRecords = records.filter(r => r.region.startsWith(reg.key));
+                regRecords.sort((a, b) => a.salesRep.localeCompare(b.salesRep, 'tr', { sensitivity: 'base' }));
+
+                let sheetData = [];
+
+                regRecords.forEach((r, idx) => {
+                    const talepNo = (idx + 1).toString();
+                    
+                    r.cabinets.forEach((cab, cIdx) => {
+                        sheetData.push({
+                            "Talep No": talepNo,
+                            "Bölge": r.region,
+                            "Satış Temsilcisi / Rut": r.salesRep,
+                            "Müşteri No": r.custNo,
+                            "Müşteri Ünvanı / Tabela": r.custName,
+                            "Sticker": r.sticker,
+                            "Gidecek Kabin": cab.outgoingCabinet,
+                            "Dolap Durumu": cab.cabinetCondition,
+                            "Alınacak Kabin": cab.incomingCabinet,
+                            "Gidecek Malzeme": r.outgoingMaterial,
+                            "Açıklama / Not": r.notes,
+                            "Tarih": r.date
+                        });
+                    });
+                });
+
+                if (sheetData.length === 0) {
+                    sheetData.push({
+                        "Talep No": "",
+                        "Bölge": reg.name,
+                        "Satış Temsilcisi / Rut": "",
+                        "Müşteri No": "",
+                        "Müşteri Ünvanı / Tabela": "",
+                        "Sticker": "",
+                        "Gidecek Kabin": "",
+                        "Dolap Durumu": "",
+                        "Alınacak Kabin": "",
+                        "Gidecek Malzeme": "",
+                        "Açıklama / Not": "",
+                        "Tarih": ""
+                    });
+                }
+
+                const ws = XLSX.utils.json_to_sheet(sheetData);
+
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cell_address = XLSX.utils.encode_cell({c: C, r: R});
+                        if (!ws[cell_address]) continue;
+                        
+                        if (R === 0) {
+                            ws[cell_address].s = {
+                                font: { bold: true, color: { rgb: "FFFFFF" } },
+                                fill: { fgColor: { rgb: "2563EB" } },
+                                alignment: { horizontal: "center", vertical: "center" },
+                                border: {
+                                    top: { style: "thin", color: { rgb: "000000" } },
+                                    bottom: { style: "thin", color: { rgb: "000000" } },
+                                    left: { style: "thin", color: { rgb: "000000" } },
+                                    right: { style: "thin", color: { rgb: "000000" } }
+                                }
+                            };
+                        } else {
+                            ws[cell_address].s = {
+                                border: {
+                                    top: { style: "thin", color: { rgb: "D1D5DB" } },
+                                    bottom: { style: "thin", color: { rgb: "D1D5DB" } },
+                                    left: { style: "thin", color: { rgb: "D1D5DB" } },
+                                    right: { style: "thin", color: { rgb: "D1D5DB" } }
+                                }
+                            };
+                        }
+                    }
+                }
+
+                ws['!cols'] = [
+                    {wch: 10}, {wch: 25}, {wch: 22}, {wch: 15}, {wch: 30}, {wch: 12}, {wch: 18}, {wch: 15}, {wch: 22}, {wch: 25}, {wch: 25}, {wch: 12}
+                ];
+
+                XLSX.utils.book_append_sheet(wb, ws, reg.name);
             });
 
-            html += `
-                        </tbody>
-                    </table>
-                </body>
-                </html>
-            `;
-
-            const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `dondurma_sevkiyat_raporu_${new Date().toISOString().slice(0,10)}.xls`;
-            link.click();
+            XLSX.writeFile(wb, `kenarlikli_dondurma_sevkiyat_raporu_${new Date().toISOString().slice(0,10)}.xlsx`);
             closeAdminModal();
         }
-        window.exportExcel = exportExcel;
+
+        window.onload = initApp;
     </script>
 </body>
 </html>
